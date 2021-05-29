@@ -1,9 +1,13 @@
 from django.views.generic import ListView, \
-    DetailView, CreateView, UpdateView, DeleteView
+    DetailView, CreateView, UpdateView, DeleteView, TemplateView
 from django.shortcuts import render
 from .models import Post
 from .filters import PostFilter
 from .forms import PostForm
+from django.contrib.auth.mixins import LoginRequiredMixin
+from django.shortcuts import redirect
+from django.contrib.auth.models import Group, User
+from django.contrib.auth.decorators import login_required
 
 class NewsList(ListView):
     model = Post
@@ -16,24 +20,7 @@ class NewsList(ListView):
         context = super().get_context_data(**kwargs)
         context['filter'] = PostFilter(self.request.GET, queryset=self.get_queryset())
         return context
-    # def get_context_data(self, **kwargs):
-    #     context = super().get_context_data(**kwargs)
-    #     # context['time_now'] = datetime.utcnow()  # добавим переменную текущей даты time_now
-    #     context['object_list'] = context['object_list'][1].Post_title  # добавим ещё одну пустую переменную, чтобы на её примере посмотреть работу другого фильтра
-    #     # print(context)
-    #     return context
 
-
-# class NewsDetail(DetailView):
-#     model = Post
-#     template_name = 'new.html'
-#     context_object_name = 'new'
-#     def get_context_data(self, **kwargs):
-#         context = super().get_context_data(**kwargs)
-#     #     context['time_now'] = datetime.utcnow()  # добавим переменную текущей даты time_now
-#         context['Title'] = context['object'].Post_title  # добавим ещё одну пустую переменную, чтобы на её примере посмотреть работу другого фильтра
-#         context['Text'] = context['object'].Post_text
-#         return context
 
 class NewsSearch(ListView):
     model = Post
@@ -59,7 +46,7 @@ class NewsCreate(CreateView):
     template_name = 'create_news.html'
     form_class = PostForm
 
-class NewEdit(UpdateView):
+class NewEdit(LoginRequiredMixin,TemplateView):
     template_name = 'create_news.html'
     form_class = PostForm
 
@@ -73,6 +60,17 @@ class NewDelete(DeleteView):
     queryset = Post.objects.all()
     success_url = '/news/'
 
+class ProtectedView(LoginRequiredMixin, TemplateView):
+    template_name = 'detail_news.html'
+
 class NewDetailView(DetailView):
     template_name = 'detail_news.html'
     queryset = Post.objects.all()
+
+@login_required
+def upgradeMe(request):
+    user = request.user
+    author_group = Group.objects.get(name='authors')
+    if not request.user.groups.filter(name='authors').exists():
+        author_group.user_set.add(user)
+    return redirect('/news')
