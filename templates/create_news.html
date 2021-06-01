@@ -4,7 +4,12 @@
 {% block title %} News {% endblock title %}
 
 {% block content %}
+<a href="/news/">Все новости</a>
 <h3>Добавить статью</h3>
+{% if is_not_authors %}
+<button> <a href="{% url 'upgrade' %}">Стать автором</a></button><br>
+{% endif %}
+
 <form method="POST">
     {% csrf_token %}
     {{ form }} <!-- Теперь нам нужна только готовая форма и кнопка -->

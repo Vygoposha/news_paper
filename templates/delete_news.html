@@ -4,6 +4,9 @@
 {% block title %} News {% endblock title %}
 
 {% block content %}
+{% if is_not_authors %}
+<button> <a href="{% url 'upgrade' %}">Стать автором</a></button><br>
+{% endif %}
 <a href="/news/">Все новости</a>
 <table>
             <thead>

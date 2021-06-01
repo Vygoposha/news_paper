@@ -4,7 +4,7 @@ from django.shortcuts import render
 from .models import Post
 from .filters import PostFilter
 from .forms import PostForm
-from django.contrib.auth.mixins import LoginRequiredMixin
+from django.contrib.auth.mixins import LoginRequiredMixin, PermissionRequiredMixin
 from django.shortcuts import redirect
 from django.contrib.auth.models import Group, User
 from django.contrib.auth.decorators import login_required
@@ -42,30 +42,51 @@ class NewsSearch(ListView):
         return context
 
 
-class NewsCreate(CreateView):
+class NewsCreate(PermissionRequiredMixin,CreateView):
     template_name = 'create_news.html'
     form_class = PostForm
+    permission_required = ('news.add_post',)
 
-class NewEdit(LoginRequiredMixin,TemplateView):
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['is_not_authors'] = not self.request.user.groups.filter(name='authors').exists()
+        return context
+
+class NewEdit(PermissionRequiredMixin,UpdateView):
     template_name = 'create_news.html'
     form_class = PostForm
+    permission_required = ('news.change_post',)
 
     # метод get_object мы используем вместо queryset, чтобы получить информацию об объекте который мы собираемся редактировать
     def get_object(self, **kwargs):
         id = self.kwargs.get('pk')
         return Post.objects.get(pk=id)
 
-class NewDelete(DeleteView):
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['is_not_authors'] = not self.request.user.groups.filter(name='authors').exists()
+        return context
+
+class NewDelete(PermissionRequiredMixin, DeleteView):
     template_name = 'delete_news.html'
     queryset = Post.objects.all()
+    permission_required = ('news.delete_post',)
     success_url = '/news/'
 
-class ProtectedView(LoginRequiredMixin, TemplateView):
-    template_name = 'detail_news.html'
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['is_not_authors'] = not self.request.user.groups.filter(name='authors').exists()
+        return context
 
-class NewDetailView(DetailView):
+
+class NewDetailView(LoginRequiredMixin, DetailView):
     template_name = 'detail_news.html'
     queryset = Post.objects.all()
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['is_not_authors'] = not self.request.user.groups.filter(name='authors').exists()
+        return context
 
 @login_required
 def upgradeMe(request):
@@ -73,4 +94,4 @@ def upgradeMe(request):
     author_group = Group.objects.get(name='authors')
     if not request.user.groups.filter(name='authors').exists():
         author_group.user_set.add(user)
-    return redirect('/news')
+    return redirect('/')
