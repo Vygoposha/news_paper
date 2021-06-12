@@ -15,7 +15,6 @@ Including another URLconf
 """
 from django.contrib import admin
 from django.urls import path, include
-from news.views import upgradeMe
 
 
 urlpatterns = [
@@ -23,9 +22,8 @@ urlpatterns = [
 # дополнительно подключаем
     path('', include('news.urls')),
     path('pages/', include('django.contrib.flatpages.urls')),
-    path('news/', include('news.urls')),
     path('accounts/', include('allauth.urls')),
-
+    path('news/', include(('news.urls', 'news'), namespace='news'))
 
 
     ]

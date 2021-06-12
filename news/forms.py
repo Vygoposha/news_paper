@@ -1,5 +1,5 @@
 from django.forms import ModelForm, BooleanField
-from .models import Post
+from .models import Post, Category, PostCategory
 from allauth.account.forms import SignupForm
 from django.contrib.auth.models import Group
 
@@ -17,3 +17,4 @@ class BasicSignupForm(SignupForm):
         basic_group = Group.objects.get(name = 'common')
         basic_group.user_set.add(user)
         return user
+

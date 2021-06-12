@@ -4,11 +4,12 @@
 {% block title %} News {% endblock title %}
 
 {% block content %}
-    <h1><a href="/news/">Все новости</a></h1>
+
     <h3>Количество всех новостей: {{ news|length }}</h3>
     <hr>
 <form method="GET">
-    {{ filter.form }} <!-- Форму от фильтров за нас сделает django. А вот кнопку, увы придётся делать самому -->
+    {{ filter.form }} <!-- Форму от фильтров за нас сделает django.
+    А вот кнопку, увы придётся делать самому -->
     <input type="submit" value="Найти">
 </form>
     {% if news %} <!-- Если есть товары, то выводим таблицу с ними -->
@@ -33,6 +34,9 @@
                 <td>
                     <h4>Рейтинг</h4>
                 </td>
+                <td>
+                    <h4>Категория</h4>
+                </td>
             </tr>
         {% for new in filter.qs %} <!-- Для каждого товара будете генерироваться новая строчка, т.е. новый html код. При этом сам цикл работет точно также, как и в python. product — переменная цикла, т.е. наш товар взятый из общего списка -->
             <tr>
@@ -56,8 +60,11 @@
                     {{ new.Post_rating }}
                 </td>
                 <td>
-                    {{ new.category.name }}
+                    {% for category in new.Post_category.all %}
+                        {{ category }}<br>
+                    {% endfor %}
                 </td>
+
             </tr>
         {% endfor %}
         </table>

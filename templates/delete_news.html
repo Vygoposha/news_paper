@@ -7,7 +7,7 @@
 {% if is_not_authors %}
 <button> <a href="{% url 'upgrade' %}">Стать автором</a></button><br>
 {% endif %}
-<a href="/news/">Все новости</a>
+
 <table>
             <thead>
                 <td>
@@ -40,7 +40,7 @@
                     {{ post.Post_time}}
                 </td>
                 <td>
-                    {{ post.Post_text|censor|truncatechars:50 }}
+                    {{ post.Post_text|censor }}
                     <!--{{ product.description|truncatechars:20 }} по количеству символов-->
                 </td>
                 <td>

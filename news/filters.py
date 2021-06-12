@@ -9,5 +9,6 @@ class PostFilter(FilterSet):
                   'Post_rating': ['gt'],
                   'Post_time': ['lt'],
                   'Post_title': ['icontains'],
-                  'Post_type':['exact']
+                  'Post_type':['exact'],
+                  'Post_category':['exact']
                   }

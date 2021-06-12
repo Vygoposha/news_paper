@@ -3,10 +3,13 @@ from django.contrib.auth.models import User
 from django.views.generic import ListView, DetailView
 # import datetime
 
-# Create your models here.
+
 class Author(models.Model):
     author = models.OneToOneField(User, on_delete= models.CASCADE)
     author_rating = models.IntegerField(default=0)
+
+    def __str__(self):
+        return f'{self.author.get_username()}'
 
     def update_rating(self):
         post_author = Post.objects.filter(author = self.id, Post_type = self.author)
@@ -28,6 +31,10 @@ class Author(models.Model):
 
 class Category(models.Model):
     category_name = models.CharField(max_length=64, unique=True)
+    subscribers = models.ManyToManyField(User, null=True)
+
+    def __str__(self):
+        return f'{self.category_name}'
 
 
 class Post(models.Model):
@@ -51,7 +58,6 @@ class Post(models.Model):
     def get_absolute_url(self):  # добавим абсолютный путь чтобы после создания нас перебрасывало на страницу с товаром
         return f'/news/{self.id}'
 
-
     def like(self):
         self.Post_rating += 1
         self.save()
@@ -67,10 +73,7 @@ class Post(models.Model):
 class PostCategory(models.Model):
     post = models.ForeignKey(Post, on_delete=models.CASCADE)
     category = models.ForeignKey(Category, on_delete= models.CASCADE)
-    # !!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-    def __str__(self):
-        return f'{self.category}'
-    # !!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
 
 class Comment(models.Model):
     post = models.ForeignKey(Post, on_delete=models.CASCADE)
@@ -86,3 +89,6 @@ class Comment(models.Model):
     def dislike(self):
         self.comment_rating -= 1
         self.save()
+
+    def __str__(self):
+        return self.comment_text

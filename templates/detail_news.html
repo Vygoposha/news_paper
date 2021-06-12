@@ -6,10 +6,7 @@ News
 {% endblock title %}
 
 {% block content %}
-{% if is_not_authors %}
-<button> <a href="{% url 'upgrade' %}">Стать автором</a></button><br>
-{% endif %}
-<a href="/news/">Все новости</a>
+
 <table>
     <thead>
         <th>
@@ -30,6 +27,9 @@ News
         <th>
             <h4>Рейтинг</h4>
         </th>
+         <th>
+            <h4>Категория</h4>
+        </th>
     </thead>
     <tr>
         <td>
@@ -42,8 +42,7 @@ News
             {{ post.Post_time}}
         </td>
         <td>
-            {{ post.Post_text|censor|truncatechars:50 }}
-                    <!--{{ product.description|truncatechars:20 }} по количеству символов-->
+            {{ post.Post_text|censor }}
         </td>
         <td>
             {{ post.Post_type }}
@@ -52,7 +51,17 @@ News
             {{ post.Post_rating }}
         </td>
         <td>
-            {{ post.category.name }}
+            {% for category in post.Post_category.all %}
+                        {{ category }}<br>
+            {% endfor %}
+            <td>
+            {% for category in post.Post_category.all %}
+            <form action="{% url 'subscribe' category.pk %}" method="POST">
+                    {% csrf_token%}
+                    <button type="submit" value="{{ category }}">Подписаться</button>
+            </form>
+            {% endfor %}
+            </td>
         </td>
     </tr>
 </table>

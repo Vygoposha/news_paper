@@ -1,0 +1,13 @@
+
+                <form action="{% url 'subscribe' category.pk %}" method="POST">
+                    {% csrf_token%}
+                    <button type="submit" value="{{ category }}">Подписаться</button>
+                </form>
+
+                # Create your tests here.
+                    <form action="{% url 'subscribe' category.pk %}" method="POST">
+                    {% csrf_token%}
+                    <button type="submit" value="{{ category }}">Подписаться</button>
+
+
+                   <button name="pk" value="category.pk"> <a href="{% url 'subscribe' %}">Подписаться</a></button><br>

@@ -1,13 +1,20 @@
 from django.views.generic import ListView, \
-    DetailView, CreateView, UpdateView, DeleteView, TemplateView
-from django.shortcuts import render
-from .models import Post
+    DetailView, CreateView, UpdateView, DeleteView, View
+from django.shortcuts import render, redirect, reverse, get_object_or_404
+from django.core.mail import send_mail
+from django.template.loader import render_to_string
+from .models import Post, Category
 from .filters import PostFilter
 from .forms import PostForm
 from django.contrib.auth.mixins import LoginRequiredMixin, PermissionRequiredMixin
 from django.shortcuts import redirect
 from django.contrib.auth.models import Group, User
 from django.contrib.auth.decorators import login_required
+from django.core.mail import EmailMultiAlternatives  # импортируем класс для создание объекта письма с html
+
+
+
+
 
 class NewsList(ListView):
     model = Post
@@ -16,9 +23,19 @@ class NewsList(ListView):
     queryset = Post.objects.order_by('-id')
     paginate_by = 10
 
+    def get_query_data(self, **kwargs):
+        query = super().get_context_data(**kwargs)
+        query['filter'] = PostFilter(self.request.GET, queryset=self.get_queryset())
+        return query
+
+    def get_index_data(self, **kwargs):
+        index = super().get_context_data(**kwargs)
+        index['is_not_authorized'] = self.request.user(user='AnonymousUser')
+        return index
+
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        context['filter'] = PostFilter(self.request.GET, queryset=self.get_queryset())
+        context['is_not_authors'] = not self.request.user.groups.filter(name='authors').exists()
         return context
 
 
@@ -35,11 +52,19 @@ class NewsSearch(ListView):
     def get_queryset(self):
         return self.get_filter().qs
 
+
     def get_context_data(self,**kwargs):  # забираем отфильтрованные объекты переопределяя метод get_context_data у наследуемого класса (привет полиморфизм, мы скучали!!!)
         context = super().get_context_data(**kwargs)
         context['filter'] = PostFilter(self.request.GET,
                         queryset=self.get_queryset())  # вписываем наш фильтр в контекст
         return context
+
+    def get_index_data(self, **kwargs):
+        index = super().get_context_data(**kwargs)
+        index['is_not_authorized'] = not self.request.user.groups.filter(name='common').exists()
+        return index
+
+
 
 
 class NewsCreate(PermissionRequiredMixin,CreateView):
@@ -51,6 +76,34 @@ class NewsCreate(PermissionRequiredMixin,CreateView):
         context = super().get_context_data(**kwargs)
         context['is_not_authors'] = not self.request.user.groups.filter(name='authors').exists()
         return context
+
+    def get_index_data(self, **kwargs):
+        index = super().get_context_data(**kwargs)
+        index['is_not_authorized'] = self.request.user.groups.filter(name='common').exists()
+        return index
+
+    # def post(self, request, *args, **kwargs):
+    #     category_list = Category.objects.filter(id__in=request.POST.getlist('category')).values('subscribers')
+    #     user_list = User.objects.filter(id__in=category_list)
+    #     email_list = [i.get('email') for i in user_list.values('email')]
+    #     for i in user_list:
+    #         html_content = render_to_string(
+    #             'news/send_notify.html',
+    #             {
+    #                 'post_text': request.POST['text'][:50],
+    #                 'username': i.username,
+    #             })
+    #         email_text = EmailMultiAlternatives(
+    #             subject=f'{Category.category_name}',
+    #             body='text',
+    #             from_email='igor.vigol@yandex.ru',
+    #             to=['dzu960128@gmail.com'],
+    #             # to=[i.email],
+    #         )
+    #         email_text.attach_alternative(html_content, "text/html")
+    #         email_text.send()
+    #
+    #     return super().post(request, *args, **kwargs)
 
 class NewEdit(PermissionRequiredMixin,UpdateView):
     template_name = 'create_news.html'
@@ -67,6 +120,12 @@ class NewEdit(PermissionRequiredMixin,UpdateView):
         context['is_not_authors'] = not self.request.user.groups.filter(name='authors').exists()
         return context
 
+    def get_index_data(self, **kwargs):
+        index = super().get_context_data(**kwargs)
+        index['is_not_authorized'] = self.request.user.groups.filter(name='common').exists()
+        return index
+
+
 class NewDelete(PermissionRequiredMixin, DeleteView):
     template_name = 'delete_news.html'
     queryset = Post.objects.all()
@@ -78,6 +137,11 @@ class NewDelete(PermissionRequiredMixin, DeleteView):
         context['is_not_authors'] = not self.request.user.groups.filter(name='authors').exists()
         return context
 
+    def get_index_data(self, **kwargs):
+        index = super().get_context_data(**kwargs)
+        index['is_not_authorized'] = not self.request.user.groups.filter(name='common').exists()
+        return index
+
 
 class NewDetailView(LoginRequiredMixin, DetailView):
     template_name = 'detail_news.html'
@@ -88,6 +152,12 @@ class NewDetailView(LoginRequiredMixin, DetailView):
         context['is_not_authors'] = not self.request.user.groups.filter(name='authors').exists()
         return context
 
+    def get_index_data(self, **kwargs):
+        index = super().get_context_data(**kwargs)
+        index['is_not_authorized'] = self.request.user.groups.filter(name='common').exists()
+        return index
+
+
 @login_required
 def upgradeMe(request):
     user = request.user
@@ -95,3 +165,47 @@ def upgradeMe(request):
     if not request.user.groups.filter(name='authors').exists():
         author_group.user_set.add(user)
     return redirect('/')
+
+
+class Subscribe(LoginRequiredMixin, View):
+    model = Category
+
+    def post(self, request, *args, **kwargs):
+        user = self.request.user
+
+        category = get_object_or_404(Category, id=self.kwargs['pk'])
+        if category.subscribers.filter(username=self.request.user).exists():
+            category.subscribers.remove(user)
+        else:
+            category.subscribers.add(user)
+
+        html_content = render_to_string(
+            'send_notify.html',
+            {
+                'category': category,  # словарь со значениями, к которым можно обращаться
+                'user': User,
+            }
+        )
+
+        # в конструкторе уже знакомые нам параметры, да? Называются правда немного по другому, но суть та же.
+        msg = EmailMultiAlternatives(
+            subject=f'{category.category_name}',
+            body='Текст',  # это то же, что и message
+            from_email='igor.vigol@yandex.ru',
+            to=['dzu960128@gmail.com'],  # это то же, что и recipients_list
+        )
+        msg.attach_alternative(html_content, "text/html")  # добавляем html
+
+        msg.send()  # отсылаем
+
+        return redirect('/')
+
+
+# @login_required
+# def subscribe(request, **kwargs):
+#     pk = kwargs.get('pk')
+#     category = Category.objects.get(id = pk)
+#     category_sub = Category.objects.filter(subscribers = request.user )
+#     if not category in category_sub:
+#         category.subscribers.add(request.user )
+#     return redirect('/')

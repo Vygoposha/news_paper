@@ -25,7 +25,19 @@
 
   <!-- Header - set the background image for the header in the line below -->
   <header class="py-5 bg-image-full" style="background-image: url('http://dgdesign.ru/uploads/posts/2019-01/1547110795_shapka-sayta-it-tehnologii.jpg');">
-    <img class="img-fluid d-block mx-auto" src="https://www.shareicon.net/data/256x256/2015/09/10/98787_news_512x512.png" alt="">
+    <img class="img-fluid d-block mx-auto"  src="https://www.shareicon.net/data/256x256/2015/09/10/98787_news_512x512.png" alt="">
+    <h1><a href="{% url 'news' %}">Все новости</a></h1>
+    <br>Вы вошли как {{user}}
+    {% if is_not_authorized %}
+      <button> <a href=" /accounts/login ">Авторизироваться</a></button><br>
+    {% else %}
+      <button> <a href=" /accounts/logout ">Выйти из аккаунта</a></button>
+      {% if is_not_authors %}
+      <button> <a href="{% url 'upgrade' %}">Стать автором</a></button><br>
+      {% endif %}
+    {% endif %}
+
+
   </header>
 
   <!-- Content section -->
