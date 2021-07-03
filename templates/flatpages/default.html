@@ -29,7 +29,7 @@
     <h1><a href="{% url 'news' %}">Все новости</a></h1>
     <br>Вы вошли как {{user}}
     {% if is_not_authorized %}
-      <button> <a href=" /accounts/login ">Авторизироваться</a></button><br>
+      <button> <a href=" /accounts/login ">Войти</a></button> | <button> <a href=" /accounts/signup ">Регистрация</a></button><br>
     {% else %}
       <button> <a href=" /accounts/logout ">Выйти из аккаунта</a></button>
       {% if is_not_authors %}

@@ -5,7 +5,7 @@ from django.views.generic import ListView, DetailView
 
 
 class Author(models.Model):
-    author = models.OneToOneField(User, on_delete= models.CASCADE)
+    author = models.ForeignKey(User, on_delete=models.CASCADE, verbose_name = 'Пользователь')
     author_rating = models.IntegerField(default=0)
 
     def __str__(self):
@@ -36,6 +36,10 @@ class Category(models.Model):
     def __str__(self):
         return f'{self.category_name}'
 
+    class Meta:
+        verbose_name = "Категория"
+        verbose_name_plural = "Категории"
+
 
 class Post(models.Model):
     news = 'Новость'
@@ -45,18 +49,22 @@ class Post(models.Model):
         (article, 'Статья')
     ]
     Post_type = models.CharField(max_length=20, choices= Posts, default=news)
-    Post_time = models.DateTimeField(auto_now_add=True)
-    Post_title = models.CharField(max_length=255)
+    Post_time = models.DateTimeField(auto_now_add=True, verbose_name = 'Дата публикации')
+    Post_title = models.CharField(max_length=255, verbose_name = 'Заголовок')
     Post_text = models.TextField()
     Post_rating = models.IntegerField(default=0)
-    author = models.ForeignKey(Author, on_delete=models.CASCADE)
+    author = models.ForeignKey(Author, on_delete=models.CASCADE, verbose_name = 'Автор')
     Post_category = models.ManyToManyField(Category, through='PostCategory')
+
+    class Meta:
+        verbose_name = "Пост"
+        verbose_name_plural = "Посты"
 
     def __str__(self):
         return f'{self.Post_title.title()}: {self.Post_text[:20]}'
 
     def get_absolute_url(self):  # добавим абсолютный путь чтобы после создания нас перебрасывало на страницу с товаром
-        return f'/news/{self.id}'
+        return f'/news/post/{self.id}'
 
     def like(self):
         self.Post_rating += 1
@@ -73,6 +81,9 @@ class Post(models.Model):
 class PostCategory(models.Model):
     post = models.ForeignKey(Post, on_delete=models.CASCADE)
     category = models.ForeignKey(Category, on_delete= models.CASCADE)
+
+    def __str__(self):
+        return f'{self.category}'
 
 
 class Comment(models.Model):

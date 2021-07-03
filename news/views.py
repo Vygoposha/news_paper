@@ -3,7 +3,7 @@ from django.views.generic import ListView, \
 from django.shortcuts import render, redirect, reverse, get_object_or_404
 from django.core.mail import send_mail
 from django.template.loader import render_to_string
-from .models import Post, Category
+from .models import Post, Category, Author
 from .filters import PostFilter
 from .forms import PostForm
 from django.contrib.auth.mixins import LoginRequiredMixin, PermissionRequiredMixin
@@ -28,14 +28,10 @@ class NewsList(ListView):
         query['filter'] = PostFilter(self.request.GET, queryset=self.get_queryset())
         return query
 
-    def get_index_data(self, **kwargs):
-        index = super().get_context_data(**kwargs)
-        index['is_not_authorized'] = self.request.user(user='AnonymousUser')
-        return index
-
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         context['is_not_authors'] = not self.request.user.groups.filter(name='authors').exists()
+        context['is_not_authorized'] = not self.request.user.is_authenticated
         return context
 
 
@@ -65,22 +61,17 @@ class NewsSearch(ListView):
         return index
 
 
-
-
 class NewsCreate(PermissionRequiredMixin,CreateView):
     template_name = 'create_news.html'
     form_class = PostForm
     permission_required = ('news.add_post',)
 
+
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         context['is_not_authors'] = not self.request.user.groups.filter(name='authors').exists()
+        context['is_not_authorized'] = not self.request.user.is_authenticated
         return context
-
-    def get_index_data(self, **kwargs):
-        index = super().get_context_data(**kwargs)
-        index['is_not_authorized'] = self.request.user.groups.filter(name='common').exists()
-        return index
 
     # def post(self, request, *args, **kwargs):
     #     category_list = Category.objects.filter(id__in=request.POST.getlist('category')).values('subscribers')
@@ -105,10 +96,12 @@ class NewsCreate(PermissionRequiredMixin,CreateView):
     #
     #     return super().post(request, *args, **kwargs)
 
+
 class NewEdit(PermissionRequiredMixin,UpdateView):
     template_name = 'create_news.html'
     form_class = PostForm
     permission_required = ('news.change_post',)
+
 
     # метод get_object мы используем вместо queryset, чтобы получить информацию об объекте который мы собираемся редактировать
     def get_object(self, **kwargs):
@@ -150,12 +143,8 @@ class NewDetailView(LoginRequiredMixin, DetailView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         context['is_not_authors'] = not self.request.user.groups.filter(name='authors').exists()
+        context['is_not_authorized'] = not self.request.user.groups.filter(name='common').exists()
         return context
-
-    def get_index_data(self, **kwargs):
-        index = super().get_context_data(**kwargs)
-        index['is_not_authorized'] = self.request.user.groups.filter(name='common').exists()
-        return index
 
 
 @login_required
@@ -200,12 +189,3 @@ class Subscribe(LoginRequiredMixin, View):
 
         return redirect('/')
 
-
-# @login_required
-# def subscribe(request, **kwargs):
-#     pk = kwargs.get('pk')
-#     category = Category.objects.get(id = pk)
-#     category_sub = Category.objects.filter(subscribers = request.user )
-#     if not category in category_sub:
-#         category.subscribers.add(request.user )
-#     return redirect('/')

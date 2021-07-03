@@ -4,7 +4,7 @@ from allauth.account.forms import SignupForm
 from django.contrib.auth.models import Group
 
 class PostForm(ModelForm):
-    check_box = BooleanField(label='Статья цензурна')
+    check_box = BooleanField(label='Статья цензурна', required=False)
     class Meta:
         model = Post
         fields = [
@@ -17,4 +17,3 @@ class BasicSignupForm(SignupForm):
         basic_group = Group.objects.get(name = 'common')
         basic_group.user_set.add(user)
         return user
-

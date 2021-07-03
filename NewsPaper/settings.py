@@ -44,7 +44,7 @@ INSTALLED_APPS = [
     'django.contrib.flatpages',
     'fpages',
     'django_filters',
-    'news',
+    'news.apps.NewsConfig',
     'accounts',
 
 
@@ -157,7 +157,9 @@ ACCOUNT_EMAIL_REQUIRED = True
 ACCOUNT_UNIQUE_EMAIL = True
 ACCOUNT_USERNAME_REQUIRED = False
 ACCOUNT_AUTHENTICATION_METHOD = 'email'
-ACCOUNT_EMAIL_VERIFICATION = 'none'
+ACCOUNT_EMAIL_VERIFICATION = 'optional'  #"mandatory", "optional", or "none".https://django-allauth.readthedocs.io/en/latest/configuration.html
+
+
 
 LOGIN_URL = '/accounts/login/'
 LOGIN_REDIRECT_URL = '/'
@@ -173,4 +175,4 @@ EMAIL_HOST_USER = 'igor.vigol'  # ваше имя пользователя, на
 EMAIL_HOST_PASSWORD = 'One+las5'  # пароль от почты
 EMAIL_USE_SSL = True  # Яндекс использует ssl, подробнее о том, что это, почитайте в дополнительных источниках, но включать его здесь обязательно
 
-DEFAULT_FROM_EMAIL = 'igor.vigol@yandex.ru'
+DEFAULT_FROM_EMAIL = EMAIL_HOST_USER + '@yandex.ru'
