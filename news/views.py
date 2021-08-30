@@ -12,6 +12,10 @@ from django.contrib.auth.models import Group, User
 from django.contrib.auth.decorators import login_required
 from django.core.mail import EmailMultiAlternatives  # импортируем класс для создание объекта письма с html
 
+from django.http import HttpResponse
+from django.views import View
+from .tasks import hello
+
 
 
 
@@ -35,6 +39,7 @@ class NewsList(ListView):
         return context
 
 
+
 class NewsSearch(ListView):
     model = Post
     template_name = 'search.html'
@@ -44,6 +49,7 @@ class NewsSearch(ListView):
 
     def get_filter(self):
         return PostFilter(self.request.GET, queryset=super().get_queryset())
+
 
     def get_queryset(self):
         return self.get_filter().qs
@@ -72,29 +78,6 @@ class NewsCreate(PermissionRequiredMixin,CreateView):
         context['is_not_authors'] = not self.request.user.groups.filter(name='authors').exists()
         context['is_not_authorized'] = not self.request.user.is_authenticated
         return context
-
-    # def post(self, request, *args, **kwargs):
-    #     category_list = Category.objects.filter(id__in=request.POST.getlist('category')).values('subscribers')
-    #     user_list = User.objects.filter(id__in=category_list)
-    #     email_list = [i.get('email') for i in user_list.values('email')]
-    #     for i in user_list:
-    #         html_content = render_to_string(
-    #             'news/send_notify.html',
-    #             {
-    #                 'post_text': request.POST['text'][:50],
-    #                 'username': i.username,
-    #             })
-    #         email_text = EmailMultiAlternatives(
-    #             subject=f'{Category.category_name}',
-    #             body='text',
-    #             from_email='igor.vigol@yandex.ru',
-    #             to=['dzu960128@gmail.com'],
-    #             # to=[i.email],
-    #         )
-    #         email_text.attach_alternative(html_content, "text/html")
-    #         email_text.send()
-    #
-    #     return super().post(request, *args, **kwargs)
 
 
 class NewEdit(PermissionRequiredMixin,UpdateView):
@@ -147,6 +130,8 @@ class NewDetailView(LoginRequiredMixin, DetailView):
         return context
 
 
+
+
 @login_required
 def upgradeMe(request):
     user = request.user
@@ -188,4 +173,9 @@ class Subscribe(LoginRequiredMixin, View):
         msg.send()  # отсылаем
 
         return redirect('/')
+
+class IndexView(View):
+    def get(self, request):
+        hello.delay()
+        return HttpResponse("Hello YA!!!")
 
