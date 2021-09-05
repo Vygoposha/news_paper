@@ -7,14 +7,14 @@ from .models import Post, Category, Author
 from .filters import PostFilter
 from .forms import PostForm
 from django.contrib.auth.mixins import LoginRequiredMixin, PermissionRequiredMixin
-from django.shortcuts import redirect
 from django.contrib.auth.models import Group, User
 from django.contrib.auth.decorators import login_required
 from django.core.mail import EmailMultiAlternatives  # импортируем класс для создание объекта письма с html
 
 from django.http import HttpResponse
 from django.views import View
-from .tasks import hello
+from .tasks import news_create_notify
+from datetime import datetime, timedelta
 
 
 
@@ -79,6 +79,16 @@ class NewsCreate(PermissionRequiredMixin,CreateView):
         context['is_not_authorized'] = not self.request.user.is_authenticated
         return context
 
+
+
+    # def form_valid(self, form):
+    #     author = Author.objects.get(author = self.request.user)
+    #     form.instance.author = author
+    #
+    #     form.save()
+    #     sub_list = list(form.instance.Post_category.all().values_list('subscribers', flat=True))
+    #     news_create_notify.delay(user_id = sub_list, news_id = form.instance.id)
+    #     return super().form_valid(form)
 
 class NewEdit(PermissionRequiredMixin,UpdateView):
     template_name = 'create_news.html'
@@ -176,6 +186,7 @@ class Subscribe(LoginRequiredMixin, View):
 
 class IndexView(View):
     def get(self, request):
-        hello.delay()
-        return HttpResponse("Hello YA!!!")
+        # hello.delay()
+        # printer.apply_async([10], countdown = 1)
+        return HttpResponse("Hello")
 

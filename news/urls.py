@@ -5,7 +5,7 @@ from .views import NewsList, NewsSearch, IndexView, \
 from allauth.account.views import LogoutView
 
 urlpatterns = [
-    path('', IndexView.as_view()),
+    # path('', IndexView.as_view()),
     # path — означает путь. В данном случае путь ко всем товарам у нас останется пустым, позже станет ясно почему
     path('', NewsList.as_view(), name = 'news'),
     # т.к. сам по себе это класс, то нам надо представить этот класс в виде view. Для этого вызываем метод as_view

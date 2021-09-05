@@ -1,7 +1,7 @@
 from django.forms import ModelForm, BooleanField
 from .models import Post, Category, PostCategory
 from allauth.account.forms import SignupForm
-from django.contrib.auth.models import Group
+from django.contrib.auth.models import Group, User
 
 class PostForm(ModelForm):
     check_box = BooleanField(label='Статья цензурна', required=False)
