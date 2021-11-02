@@ -48,7 +48,8 @@
        {% endblock content %}
     </div>
   </section>
-
+{% load cache %}
+{% cache 600 downside %}
   <!-- Image element - set the background image for the header in the line below -->
   <div class="py-5 bg-image-full" style="background-image: url('https://www.conchovalleyhomepage.com/wp-content/uploads/sites/83/2020/05/BREAKING-NEWS-GENERIC-1.jpg');">
     <!-- Put anything you want here! There is just a spacer below for demo purposes! -->
@@ -63,7 +64,7 @@
     </div>
     <!-- /.container -->
   </footer>
-
+{% endcache %}
   <!-- Bootstrap core JavaScript -->
   <script src="{% static 'vendor/jquery/jquery.min.js'%}"></script>
   <script src="{% static 'vendor/bootstrap/js/bootstrap.bundle.min.js'%}"></script>

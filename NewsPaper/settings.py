@@ -194,3 +194,16 @@ CELERY_ACCEPT_CONTENT = ['application/json']
 CELERY_TASK_SERIALIZER = 'json'
 #метод сериализации результатов
 CELERY_RESULT_SERIALIZER = 'json'
+
+# кэширование через файловую систему
+CACHES = {
+    'default': {
+        'BACKEND': 'django.core.cache.backends.filebased.FileBasedCache',
+        'TIMEOUT': 100,  # количесво времени в сек., после которого запись в кэше удалится
+        'LOCATION': os.path.join(BASE_DIR, 'cache_files'), # Указываем, куда будем сохранять кэшируемые файлы! Не забываем создать папку cache_files внутри папки с manage.py!
+        'OPTIONS': {
+            'MAX_ENTRIES': 200,  # максимальное количество элементов в кэше
+            'CULL_FREQUENCY': 1/2,  # часть элеметов, котоыре удалятеся при достижении максимума
+         }
+    }
+}

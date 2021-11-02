@@ -7,11 +7,14 @@
 
     <h3>Количество всех новостей: {{ news|length }}</h3>
     <hr>
-<form method="GET">
-    {{ filter.form }} <!-- Форму от фильтров за нас сделает django.
-    А вот кнопку, увы придётся делать самому -->
-    <input type="submit" value="Найти">
-</form>
+{% load cache %}
+{% cache 100 form %}
+    <form method="GET">
+        {{ filter.form }} <!-- Форму от фильтров за нас сделает django.
+        А вот кнопку, увы придётся делать самому -->
+        <input type="submit" value="Найти">
+    </form>
+{% endcache %}
     {% if news %} <!-- Если есть товары, то выводим таблицу с ними -->
 
         <table>
